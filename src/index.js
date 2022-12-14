@@ -16,10 +16,21 @@ let count = 0;
 
 io.on('connection', (socket) => {
     console.log('New WebSocket connection')
+    socket.emit('message', 'Welcome!')
+
+    socket.broadcast.emit('message', 'A new user has joined!')
 
     socket.on('sentMessage', (message) => {
         // socket.emit('countUpdated', count) // This line emits an event to that specific connection
         io.emit('message', message) // Emits the event for every single connection
+    })
+
+    socket.on('sendLocation', (coords) => {
+        io.emit('message', `Location ${coords.latitude}, ${coords.longitude}`)
+    })
+
+    socket.on('disconnect', () => {
+        io.emit('message', 'A user has left!')
     })
 })
 
