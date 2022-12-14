@@ -6,6 +6,7 @@ const socketio = require('socket.io')
 const app = express()
 const server = http.createServer(app)
 const io = socketio(server)
+const Filter = require('bad-words');
 
 const port = process.env.PORT || 3000
 const publicDirectoryPath = path.join(__dirname, '../public')
@@ -20,13 +21,20 @@ io.on('connection', (socket) => {
 
     socket.broadcast.emit('message', 'A new user has joined!')
 
-    socket.on('sentMessage', (message) => {
+    socket.on('sendMessage', (message, callback) => {
+        const filter = new Filter()
+
+        if (filter.isProfane(message)) {
+            return callback('Profanity is not allowed!')
+        }
         // socket.emit('countUpdated', count) // This line emits an event to that specific connection
         io.emit('message', message) // Emits the event for every single connection
+        callback('Delivered!')
     })
 
-    socket.on('sendLocation', (coords) => {
-        io.emit('message', `Location ${coords.latitude}, ${coords.longitude}`)
+    socket.on('sendLocation', (coords, callback) => {
+        io.emit('message', `https://google.com/maps?q=${coords.latitude},${coords.longitude}`)
+        callback('Location shared!')
     })
 
     socket.on('disconnect', () => {

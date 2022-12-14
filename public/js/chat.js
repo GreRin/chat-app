@@ -1,29 +1,61 @@
 const socket = io()
 
-socket.on('countUpdated', (count) => {
-  console.log('The count has been updated!', count)
-})
+// Elements
+const $messageFrom = document.getElementById('message-form')
+const $messageFormInput = $messageFrom.querySelector('input')
+const $messageFormButton = $messageFrom.querySelector('button')
+const $sendLocationBtn = document.getElementById('send-location')
+const $messages = document.querySelector('#messages')
+
+// Templates
+const messageTemplate = document.querySelector('#message-template').innerHTML
 
 socket.on('message', (message) => {
-  console.log('Message sent: ', message)
+  console.log(message)
+  if (message) {
+    const html = Mustache.render(messageTemplate, {
+      message
+    })
+    console.log(html)
+    $messages.insertAdjacentHTML('beforeend', html)
+  }
 })
 
-document.getElementById('message-form').addEventListener('submit', (event) => {
+$messageFrom.addEventListener('submit', (event) => {
   event.preventDefault()
-  const message = event.target.elements.message.value
-  socket.emit('sentMessage', message)
+
+  $messageFormButton.setAttribute('disabled', 'disabled')
+
+  const val = event.target.elements.message.value
+
+  console.log(val)
+
+  socket.emit('sendMessage', val, (error) => {
+    $messageFormButton.removeAttribute('disabled')
+    $messageFormInput.value = ''
+    $messageFormInput.focus()
+    console.log(error)
+
+    if (error) {
+      return console.log(error)
+    }
+
+    console.log('Message delivered!')
+  })
 })
 
-document.getElementById('send-location').addEventListener('click', (event) => {
+$sendLocationBtn.addEventListener('click', (event) => {
   // if (navigator.geolocation) {
   //   return alert('Geolocation is not supported by your browser')
   // }
-
+  $sendLocationBtn.setAttribute('disabled', 'disabled')
   navigator.geolocation.getCurrentPosition((position) => {
-    console.log(position)
     socket.emit('sendLocation', {
       latitude: position.coords.latitude,
       longitude: position.coords.longitude
+    }, (message) => {
+      $sendLocationBtn.removeAttribute('disabled')
+      console.log(message)
     })
   })
 })
