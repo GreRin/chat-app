@@ -10,6 +10,7 @@ const $messages = document.querySelector('#messages')
 // Templates
 const messageTemplate = document.querySelector('#message-template').innerHTML
 const locationTemplate = document.querySelector('#location-template').innerHTML
+const sidebarTemplate = document.querySelector('#sidebar-template').innerHTML
 
 // Options
 const  { username, room } = Qs.parse(location.search, { ignoreQueryPrefix: true })
@@ -17,6 +18,7 @@ const  { username, room } = Qs.parse(location.search, { ignoreQueryPrefix: true 
 socket.on('message', (message) => {
   if (message) {
     const html = Mustache.render(messageTemplate, {
+      username: message.username,
       message: message.text,
       createdAt: moment(message.createdAt).format('h:mm a')
     })
@@ -26,10 +28,22 @@ socket.on('message', (message) => {
 
 socket.on('locationMessage', (data) => {
   const link = Mustache.render(locationTemplate, {
+    username: data.username,
     url: data.url,
     createdAt: moment(data.createdAt).format('h:mm a')
   })
   $messages.insertAdjacentHTML('beforeend', link)
+})
+
+socket.on('roomData', ({ room, users }) => {
+  if (room && users) {
+    const html = Mustache.render(sidebarTemplate, {
+      room,
+      users,
+    })
+    document.querySelector('#sidebar').innerHTML = html
+    // $messages.insertAdjacentHTML('beforeend', html)
+  }
 })
 
 $messageFrom.addEventListener('submit', (event) => {
@@ -39,13 +53,10 @@ $messageFrom.addEventListener('submit', (event) => {
 
   const val = event.target.elements.message.value
 
-  console.log(val)
-
   socket.emit('sendMessage', val, (error) => {
     $messageFormButton.removeAttribute('disabled')
     $messageFormInput.value = ''
     $messageFormInput.focus()
-    console.log(error)
 
     if (error) {
       return console.log(error)
