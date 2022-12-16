@@ -29,7 +29,6 @@ socket.on('locationMessage', (data) => {
     url: data.url,
     createdAt: moment(data.createdAt).format('h:mm a')
   })
-  console.log(link)
   $messages.insertAdjacentHTML('beforeend', link)
 })
 
@@ -72,4 +71,9 @@ $sendLocationBtn.addEventListener('click', (event) => {
   })
 })
 
-socket.emit('join',{ username, room })
+socket.emit('join',{ username, room }, (error) => {
+  if (error) {
+    alert(error)
+    location.href = '/'
+  }
+})

@@ -22,7 +22,7 @@ const addUser = ({ id, username, room }) => {
 
   //  Check for existing user
   const existingUser = users.find((user) => {
-    return user.room === room && user.name === username
+    return user.room === room && user.username === username
   })
 
   //  Validate a username
