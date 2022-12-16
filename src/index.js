@@ -8,6 +8,7 @@ const server = http.createServer(app)
 const io = socketio(server)
 const Filter = require('bad-words');
 const { generateMessage, generateLocationMessage} = require("./utils/messages");
+const { getUser, getUsersRoom, addUser, removeUser } = require('./utils/users')
 
 const port = process.env.PORT || 3000
 const publicDirectoryPath = path.join(__dirname, '../public')
@@ -18,9 +19,17 @@ let count = 0;
 
 io.on('connection', (socket) => {
     console.log('New WebSocket connection')
-    socket.emit('message', generateMessage('Welcome!'))
 
-    socket.broadcast.emit('message', generateMessage('A new user has joined!'))
+    socket.on('join', ({ username, room }) => {
+        socket.join(room)
+
+        socket.emit('message', generateMessage('Welcome!'))
+        socket.broadcast.to(room).emit('message', generateMessage(`${username} has joined!`))
+
+        //    socket events - socket.emit, io.emit, socket.broadcast.emit
+        //    io.to.emit - emit an event to everybody in a specific room
+        //    socket.broadcast.to.emit - sending the event to everyone except the specific client, but it's limiting for a specific room
+    })
 
     socket.on('sendMessage', (message, callback) => {
         const filter = new Filter()
@@ -29,7 +38,7 @@ io.on('connection', (socket) => {
             return callback('Profanity is not allowed!')
         }
         // socket.emit('countUpdated', count) // This line emits an event to that specific connection
-        io.emit('message', generateMessage(message)) // Emits the event for every single connection
+        io.to('1').emit('message', generateMessage(message)) // Emits the event for every single connection
         callback('Delivered!')
     })
 
