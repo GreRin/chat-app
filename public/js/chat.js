@@ -91,9 +91,9 @@ $messageFrom.addEventListener('submit', (event) => {
 })
 
 $sendLocationBtn.addEventListener('click', (event) => {
-  // if (navigator.geolocation) {
-  //   return alert('Geolocation is not supported by your browser')
-  // }
+  if (navigator.geolocation) {
+    return alert('Geolocation is not supported by your browser')
+  }
   $sendLocationBtn.setAttribute('disabled', 'disabled')
   navigator.geolocation.getCurrentPosition((position) => {
     socket.emit('sendLocation', {
