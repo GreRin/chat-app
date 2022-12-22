@@ -16,6 +16,16 @@ test('Should fire error - Username in use!', () => {
   expect(exactuser.error).toEqual('Username in use!')
 })
 
+test('Should fire error - Username and room are required!', () => {
+  users.forEach(item => addUser(item))
+  const exactuser = addUser(  {
+    id: '1',
+    username: '',
+    room: ''
+  })
+  expect(exactuser.error).toEqual('Username and room are required!')
+})
+
 test('Should return user', () => {
   addUser(user)
   const exactuser = getUser('4')
@@ -31,5 +41,6 @@ test('Should should get user room', () => {
 test('Should delete user', () => {
   users.forEach(item => addUser(item))
   const rooms = removeUser('2')
-  expect(rooms.length).toBe(2)
+  const newUsers = getUser('2')
+  expect(newUsers).toBeUndefined()
 })

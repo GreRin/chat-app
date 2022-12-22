@@ -1,7 +1,9 @@
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const Client = require("socket.io-client");
-const { addUser } = require("../src/utils/users");
+const { generateMessage, generateLocationMessage} = require("../src/utils/messages");
+const { getUser, addUser } = require("../src/utils/users");
+const { user } = require("./fixtures/db")
 
 describe("Socket.io testing", () => {
   let io, serverSocket, clientSocket;
@@ -24,20 +26,59 @@ describe("Socket.io testing", () => {
     clientSocket.close();
   });
 
-  test("join", (done) => {
-    clientSocket.on("join", (options) => {
-      expect(options).toBe("world");
+  test('Should connect', (done) => {
+    // once connected, emit Hello World
+    clientSocket.emit('message', 'Hello World');
+    serverSocket.once('message', (message) => {
+      // Check that the message matches
+      expect(message).toBe('Hello World');
       done();
     });
-    serverSocket.emit("join", "world");
+    serverSocket.on('connection', (mySocket) => {
+      expect(mySocket).toBeDefined();
+    });
+  });
+
+  test("Send message", ( done) => {
+    addUser(user)
+    const userData = getUser(user.id)
+
+    clientSocket.on("message", (data, callback) => {
+      expect(data).toEqual(
+        expect.objectContaining({
+          text: `Hello ${userData.username}`,
+          username: userData.username
+        })
+      );
+      done();
+    });
+
+    serverSocket.emit("message", generateMessage(userData.username, `Hello ${userData.username}`));
+  });
+
+  test("Send location", ( done) => {
+    addUser(user)
+    const userData = getUser(user.id)
+
+    clientSocket.on("locationMessage", (data, callback) => {
+      expect(data).toEqual(
+        expect.objectContaining({
+          username: userData.username,
+          url: `https://google.com/maps?q=41.40338,2.17403`
+        })
+      );
+      done();
+    });
+
+    serverSocket.emit('locationMessage', generateLocationMessage(userData.username, `https://google.com/maps?q=41.40338,2.17403`))
   });
 
   test("should work (with ack)", (done) => {
-    serverSocket.on("hi", (cb) => {
-      cb("hola");
+    serverSocket.on("message", (cb) => {
+      cb('Delivered!');
     });
-    clientSocket.emit("hi", (arg) => {
-      expect(arg).toBe("hola");
+    clientSocket.emit("message", (arg) => {
+      expect(arg).toBe('Delivered!');
       done();
     });
   });
