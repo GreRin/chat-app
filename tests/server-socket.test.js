@@ -47,7 +47,7 @@ describe("Socket.io testing", () => {
       expect(data).toEqual(
         expect.objectContaining({
           text: `Hello ${userData.username}`,
-          username: userData.username
+          username: userData.username,
         })
       );
       done();
