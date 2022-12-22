@@ -16,7 +16,7 @@ const addUser = ({ id, username, room }) => {
   //  Validate the data
   if (!username || !room) {
     return {
-      error: 'Username and room are reqired'
+      error: 'Username and room are required!'
     }
   }
 
